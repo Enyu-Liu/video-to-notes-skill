@@ -1,54 +1,264 @@
-# Video-to-Notes Skill
+# Video-to-Notes Skill | 视频转笔记技能
 
-🚀 **在 Claude Code 中快速将 YouTube 和 Bilibili 视频转换为 AI 生成的 Markdown 笔记**
+<div align="center">
 
-支持本地 Whisper 离线转录 + OpenRouter API 智能总结，无需担心 API 转录费用。
+🚀 **Convert YouTube and Bilibili videos into AI-powered Markdown notes** | **将 YouTube 和 Bilibili 视频转换为 AI 生成的 Markdown 笔记**
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+支持本地 Whisper 离线转录 + OpenRouter API 智能总结 | Supports local Whisper transcription + OpenRouter AI summarization
 
-## ✨ 特性
+[![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)]()
 
-- 🎥 **多平台支持**: YouTube 和 Bilibili
-- 🗣️ **本地 Whisper 转录**: 使用 OpenAI Whisper 进行离线语音识别
-- 🤖 **AI 智能总结**: 通过 OpenRouter API (Claude、Gemini 等)
-- 📝 **结构化 Markdown**: 标题、核心要点、详细总结、元数据
-- 💰 **成本效益**: 免费本地转录，仅为 AI 总结付费
+[English](#english) | [中文](#中文) | [快速开始](#-quick-start--快速开始) | [使用示例](#-usage-examples--使用示例) | [配置](#-configuration--配置)
 
-## 🚀 快速开始 (5分钟)
+</div>
 
-### 1️⃣ 安装系统依赖
+---
 
-#### FFmpeg (必需)
+## 🌐 Language | 语言
+
+<div style="padding: 15px; background-color: #f0f0f0; border-radius: 8px;">
+
+Click below to switch language | 点击下方切换语言：
+
+- [🇺🇸 English](#english)
+- [🇨🇳 中文](#中文)
+
+</div>
+
+---
+
+## English
+
+### What is Video-to-Notes?
+
+Convert YouTube and Bilibili videos into structured AI-powered Markdown notes using local Whisper transcription (free) + OpenRouter API for summarization.
+
+**Why use this?**
+- 💰 **Cost-effective**: Free local transcription, only pay for AI summary (~$0.02-0.05 per video)
+- 🔒 **Privacy-focused**: Audio processed locally, never leaves your machine
+- 🌍 **Multi-platform**: YouTube, Bilibili
+- ⚡ **Fast**: 2-3 minutes for an 8-minute video
+
+### 🚀 Quick Start
+
+#### 1. Install System Dependencies
+
+**FFmpeg** (Required for audio extraction):
 ```bash
-# Windows (使用 Chocolatey)
+# Windows
 choco install ffmpeg
 
 # macOS
 brew install ffmpeg
 
-# Linux (Ubuntu/Debian)
+# Linux
 sudo apt-get install ffmpeg
 ```
 
-#### yt-dlp (必需)
+**yt-dlp** (Required for video downloading):
 ```bash
-# 使用 pip 安装
+# Install globally as a system tool
 pip install yt-dlp
+# OR via package manager
+# Windows: choco install yt-dlp
+# macOS: brew install yt-dlp
 ```
 
-### 2️⃣ 设置 Python 环境 (推荐使用 uv)
+#### 2. Setup Python Environment (with uv)
+
+```bash
+# Clone the repository
+git clone https://github.com/Enyu-Liu/video-to-notes-skill.git
+cd video-to-notes-skill/scripts
+
+# Create virtual environment with uv (recommended)
+uv venv .venv
+
+# Activate virtual environment
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+
+# Install Python dependencies
+uv pip install -r requirements.txt
+```
+
+**Note**: `yt-dlp` appears in both system installation (for CLI) and `requirements.txt` (for Python import). Both are required.
+
+#### 3. Configure Environment
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env and add your OpenRouter API key
+```
+
+**`.env` Configuration**:
+```env
+# Required: OpenRouter API Key (get from https://openrouter.ai/)
+OPENROUTER_API_KEY=sk-or-your-key-here
+
+# Optional configurations
+AI_MODEL=google/gemini-2.5-flash
+WHISPER_MODEL=base
+OUTPUT_DIRECTORY=./notes
+TEMP_DIRECTORY=./temp
+LOG_LEVEL=INFO
+MAX_VIDEO_LENGTH=7200
+```
+
+**Get API Key**: Visit [OpenRouter.ai](https://openrouter.ai/), sign up, create API key, add credits ($5-10 is enough for hundreds of videos).
+
+### 💻 Usage Examples
+
+#### Standalone Script
+
+```bash
+# Basic usage
+python process_video.py --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+# With language specification (e.g., Chinese)
+python process_video.py --url "https://www.bilibili.com/video/BV1xx411c7XZ" --language zh
+
+# Save to file
+python process_video.py --url "https://..." --save-to-file --output-path "./my_notes"
+
+# Use different AI model
+python process_video.py --url "https://..." --ai-model "anthropic/claude-3.5-sonnet"
+
+# Verbose logging
+python process_video.py --url "https://..." --verbose
+```
+
+#### Claude Code Integration
+
+Use the skill directly in Claude Code:
+
+```
+/video-to-notes https://www.youtube.com/watch?v=dQw4w9WgXcQ
+```
+
+```
+/video-to-notes https://www.bilibili.com/video/BV1LzqLBaE1B --language zh
+```
+
+```
+/video-to-notes https://... --save-to-file --output-path ./notes
+```
+
+### ⚙️ Configuration
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `OPENROUTER_API_KEY` | ✅ Yes | - | OpenRouter API key for AI summarization |
+| `AI_MODEL` | No | `anthropic/claude-3.5-sonnet` | AI model for summarization |
+| `WHISPER_MODEL` | No | `base` | Whisper model size (tiny/base/small/medium/large) |
+| `OUTPUT_DIRECTORY` | No | `./notes` | Output directory for saved notes |
+| `TEMP_DIRECTORY` | No | `./temp` | Temporary directory for processing |
+| `LOG_LEVEL` | No | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
+| `MAX_VIDEO_LENGTH` | No | `7200` | Maximum video length in seconds (2 hours) |
+
+**Recommended AI Models**:
+- `google/gemini-2.5-flash` - Fast, low cost, good quality (Recommended)
+- `anthropic/claude-3.5-sonnet` - Best quality, moderate cost
+- `openai/gpt-4-turbo` - High quality, higher cost
+
+**Whisper Models**:
+- `tiny` (~1GB) - Fastest, basic accuracy
+- `base` (~1GB) - **Recommended** - balanced performance
+- `small` (~2GB) - Better accuracy, needs decent GPU
+- `medium` (~5GB) - High quality
+- `large` (~10GB) - Best quality, requires powerful hardware
+
+### 📊 Output Example
+
+```markdown
+# Video Title
+
+## Core Points | 核心要点
+- Key point 1
+- Key point 2
+- Key point 3
+
+## Detailed Summary | 详细总结
+AI-generated detailed summary of the video content...
+
+---
+**Source | 来源**: https://www.youtube.com/watch?v=...
+**Duration | 时长**: 0:08:45
+**Author | 作者**: Channel Name
+**Processed | 处理时间**: 2025-01-15 14:30:00
+```
+
+### ⚡ Performance
+
+**Processing time (8-minute video, base model)**:
+- Video download: ~7 seconds
+- Audio extraction: ~1 second
+- Local Whisper transcription: ~30-60 seconds (CPU) or ~10-20 seconds (GPU)
+- AI summarization: ~5-6 seconds
+- **Total: ~50-80 seconds (CPU) or ~25-35 seconds (GPU)**
+
+**First run**: Downloads Whisper model (~150MB for base model)
+
+### 💰 Cost
+
+**Per 8-minute video**:
+- Local Whisper transcription: **FREE** (uses your hardware)
+- OpenRouter (Gemini 2.5 Flash): ~$0.02-0.05
+- **Total: ~$0.02-0.05 per video**
+
+---
+
+## 中文
+
+### 什么是 Video-to-Notes？
+
+将 YouTube 和 Bilibili 视频转换为结构化的 AI 驱动 Markdown 笔记，使用本地 Whisper 转录（免费）+ OpenRouter API 进行总结。
+
+**为什么使用这个？**
+- 💰 **成本效益**: 本地转录免费，仅 AI 总结付费（约 $0.02-0.05/视频）
+- 🔒 **隐私保护**: 音频本地处理，绝不离开你的机器
+- 🌍 **多平台**: YouTube、Bilibili
+- ⚡ **快速**: 8分钟视频只需2-3分钟
+
+### 🚀 快速开始
+
+#### 1. 安装系统依赖
+
+**FFmpeg** (音频提取必需):
+```bash
+# Windows
+choco install ffmpeg
+
+# macOS
+brew install ffmpeg
+
+# Linux
+sudo apt-get install ffmpeg
+```
+
+**yt-dlp** (视频下载必需):
+```bash
+# 全局安装为系统工具
+pip install yt-dlp
+# 或通过包管理器
+# Windows: choco install yt-dlp
+# macOS: brew install yt-dlp
+```
+
+#### 2. 设置 Python 环境（使用 uv）
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/video-to-notes-skill.git
-cd video-to-notes-skill
+git clone https://github.com/Enyu-Liu/video-to-notes-skill.git
+cd video-to-notes-skill/scripts
 
-# 进入脚本目录
-cd scripts
-
-# 使用 uv 创建并激活虚拟环境 (推荐!)
+# 使用 uv 创建虚拟环境（推荐）
 uv venv .venv
 
 # 激活虚拟环境
@@ -57,115 +267,99 @@ uv venv .venv
 # macOS/Linux:
 source .venv/bin/activate
 
-# 安装依赖
+# 安装 Python 依赖
 uv pip install -r requirements.txt
 ```
 
-### 3️⃣ 配置环境变量
+**注意**: `yt-dlp` 在系统安装（用于 CLI）和 `requirements.txt`（用于 Python 导入）中都出现。两者都需要。
+
+#### 3. 配置环境
 
 ```bash
 # 复制环境变量模板
 cp .env.example .env
 
-# 编辑 .env 文件，添加你的 OpenRouter API Key
-# Windows:
-notepad .env
-# macOS:
-open -e .env
-# Linux:
-nano .env
+# 编辑 .env 并添加你的 OpenRouter API 密钥
 ```
 
-在 `.env` 文件中设置以下变量：
-
+**`.env` 配置**:
 ```env
-# OpenRouter API Key (必需) - 从 https://openrouter.ai/ 获取
-OPENROUTER_API_KEY=your_openrouter_api_key_here
+# 必需：OpenRouter API 密钥（从 https://openrouter.ai/ 获取）
+OPENROUTER_API_KEY=sk-or-your-key-here
 
-# AI 模型选择 (可选)
+# 可选配置
 AI_MODEL=google/gemini-2.5-flash
-
-# Whisper 模型大小 (可选)
 WHISPER_MODEL=base
+OUTPUT_DIRECTORY=./notes
+TEMP_DIRECTORY=./temp
+LOG_LEVEL=INFO
+MAX_VIDEO_LENGTH=7200
 ```
 
-**💡 获取 API Key:**
-- 访问 [OpenRouter.ai](https://openrouter.ai/)
-- 注册账户并创建 API Key
-- 充值少量费用 ($5-10 足够处理数百个视频)
+**获取 API 密钥**: 访问 [OpenRouter.ai](https://openrouter.ai/)，注册账户，创建 API 密钥，充值（$5-10 足够处理数百个视频）。
 
-### 4️⃣ 测试运行
+### 💻 使用示例
 
-```bash
-# 在 scripts 目录下执行
-python process_video.py --url "https://www.bilibili.com/video/BV1LzqLBaE1B"
-```
-
-## 📖 使用说明
-
-### 作为 Claude Skill 使用
-
-在 Claude Code 中直接调用 `/video-to-notes` 技能：
-
-```
-/video-to-notes https://www.youtube.com/watch?v=dQw4w9WgXcQ
-```
-
-### 命令行独立使用
+#### 独立脚本
 
 ```bash
 # 基础用法
 python process_video.py --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
-# 指定语言 (例如中文)
+# 指定语言（例如中文）
 python process_video.py --url "https://www.bilibili.com/video/BV1xx411c7XZ" --language zh
 
 # 保存到文件
 python process_video.py --url "https://..." --save-to-file --output-path "./my_notes"
 
-# 使用不同的 AI 模型
+# 使用不同 AI 模型
 python process_video.py --url "https://..." --ai-model "anthropic/claude-3.5-sonnet"
 
 # 详细日志
 python process_video.py --url "https://..." --verbose
 ```
 
-## ⚙️ 配置选项
+#### Claude Code 集成
 
-### 环境变量说明
+在 Claude Code 中直接使用技能：
+
+```
+/video-to-notes https://www.youtube.com/watch?v=dQw4w9WgXcQ
+```
+
+```
+/video-to-notes https://www.bilibili.com/video/BV1LzqLBaE1B --language zh
+```
+
+```
+/video-to-notes https://... --save-to-file --output-path ./notes
+```
+
+### ⚙️ 配置
 
 | 变量 | 必需 | 默认值 | 描述 |
 |------|------|--------|------|
-| `OPENROUTER_API_KEY` | ✅ 是 | - | OpenRouter API Key (用于 AI 总结) |
-| `AI_MODEL` | 否 | `anthropic/claude-3.5-sonnet` | AI 模型选择 |
+| `OPENROUTER_API_KEY` | ✅ 是 | - | OpenRouter API 密钥（用于 AI 总结） |
+| `AI_MODEL` | 否 | `anthropic/claude-3.5-sonnet` | 用于总结的 AI 模型 |
 | `WHISPER_MODEL` | 否 | `base` | Whisper 模型大小 (tiny/base/small/medium/large) |
 | `OUTPUT_DIRECTORY` | 否 | `./notes` | 笔记保存目录 |
-| `TEMP_DIRECTORY` | 否 | `./temp` | 临时文件目录 |
+| `TEMP_DIRECTORY` | 否 | `./temp` | 处理临时目录 |
 | `LOG_LEVEL` | 否 | `INFO` | 日志级别 (DEBUG, INFO, WARNING, ERROR) |
-| `MAX_VIDEO_LENGTH` | 否 | `7200` | 最大视频长度 (秒, 2小时) |
+| `MAX_VIDEO_LENGTH` | 否 | `7200` | 最大视频长度（秒，2小时） |
 
-### Whisper 模型选择
-
-根据你的硬件和精度需求选择：
-
-| 模型 | 内存需求 | 速度 | 精度 | 推荐场景 |
-|------|----------|------|------|----------|
-| `tiny` | ~1GB | 最快 | 基础 | 快速预览、低配置硬件 |
-| `base` | ~1GB | 快 | 良好 | **默认 - 平衡性能** |
-| `small` | ~2GB | 中等 | 较好 | 一般用途，有独显 |
-| `medium` | ~5GB | 慢 | 高 | 质量优先 |
-| `large` | ~10GB | 最慢 | 最佳 | 专业转录 |
-
-### 推荐 AI 模型
-
-**AI 总结模型 (OpenRouter):**
-- `google/gemini-2.5-flash` - 快速、低成本、良好质量 (**推荐**)
+**推荐 AI 模型**:
+- `google/gemini-2.5-flash` - 快速、低成本、良好质量（推荐）
 - `anthropic/claude-3.5-sonnet` - 最佳质量、中等成本
 - `openai/gpt-4-turbo` - 高质量、较高成本
 
-## 📊 输出示例
+**Whisper 模型**:
+- `tiny` (~1GB) - 最快，基础精度
+- `base` (~1GB) - **推荐** - 平衡性能
+- `small` (~2GB) - 更好精度，需要独显
+- `medium` (~5GB) - 高质量
+- `large` (~10GB) - 最佳质量，需要强大硬件
 
-生成的 Markdown 笔记结构：
+### 📊 输出示例
 
 ```markdown
 # 视频标题
@@ -185,114 +379,51 @@ AI 生成的详细总结内容...
 **处理时间**: 2025-01-15 14:30:00
 ```
 
-## ⚡ 性能表现
+### ⚡ 性能
 
-**处理时间 (8分钟视频, base 模型):**
-- 视频下载: ~7 秒
-- 音频提取: ~1 秒
-- 本地 Whisper 转录: ~30-60 秒 (CPU) 或 ~10-20 秒 (GPU)
-- AI 总结: ~5-6 秒
-- **总计: ~50-80 秒 (CPU) 或 ~25-35 秒 (GPU)**
+**处理时间（8分钟视频，base 模型）**:
+- 视频下载：~7 秒
+- 音频提取：~1 秒
+- 本地 Whisper 转录：~30-60 秒（CPU）或 ~10-20 秒（GPU）
+- AI 总结：~5-6 秒
+- **总计：~50-80 秒（CPU）或 ~25-35 秒（GPU）**
 
-**注意**: 首次运行会下载 Whisper 模型 (~150MB, base 模型)
+**首次运行**：下载 Whisper 模型（base 模型约 150MB）
 
-## 💰 成本估算
+### 💰 成本
 
-**8分钟视频成本:**
-- 本地 Whisper 转录: **免费** (使用本地硬件)
-- OpenRouter (Gemini 2.5 Flash): ~$0.02-0.05
-- **总计: ~$0.02-0.05/视频**
-
-对比 API 转录方案: ~$0.07-0.10/视频
-
-## 🔧 故障排除
-
-### ❌ "OpenRouter API key is required"
-- 确保 `.env` 文件存在于 scripts 目录
-- 检查 `OPENROUTER_API_KEY` 设置正确
-
-### ❌ "FFmpeg failed"
-- 验证 FFmpeg 安装: `ffmpeg -version`
-- 检查视频是否下载成功
-
-### ❌ "Failed to load Whisper model"
-- 确保有足够 RAM/显存
-- 尝试更小的模型 (例如 `WHISPER_MODEL=tiny`)
-- 检查网络连接 (首次下载模型)
-
-### 🔄 转录速度慢
-- 使用更小模型 (`tiny` 或 `base`)
-- 启用 GPU 加速 (如可用)
-- 处理较短视频 (<10 分钟)
-
-### ❌ "Video too long"
-- 默认最大视频长度 2 小时 (7200 秒)
-- 可在 `.env` 中调整 `MAX_VIDEO_LENGTH`
-
-## ✅ 本地 Whisper 优势
-
-**优势:**
-- ✅ 转录 **无 API 费用** (仅 AI 总结付费)
-- ✅ **无文件大小限制** (API 限制 25MB 音频)
-- ✅ **离线工作** (模型下载后)
-- ✅ **隐私保护** - 音频不会离开你的机器
-- ✅ **无限使用** - 无 API 速率限制
-
-**权衡:**
-- ⚠️ 速度比 API 慢 (尤其在 CPU 上)
-- ⚠️ 需要硬件支持大模型
-- ⚠️ 首次运行下载模型 (~150MB - 3GB)
-
-## 📁 项目结构
-
-```
-video-to-notes-skill/
-├── scripts/
-│   ├── process_video.py       # 主 CLI 脚本
-│   ├── core/                  # 核心模块
-│   │   ├── video_processor.py # yt-dlp + FFmpeg
-│   │   ├── transcriber.py     # 本地 Whisper 模型
-│   │   ├── summarizer.py      # OpenRouter API
-│   │   └── exceptions.py
-│   ├── config/
-│   │   └── settings.py        # 配置管理
-│   └── requirements.txt       # 依赖列表
-├── .env.example               # 环境变量模板
-├── .env                       # 你的配置 (被 git 忽略)
-├── README.md                  # 说明文档
-├── QUICK_START.md             # 快速开始指南
-└── USAGE_GUIDE.md             # 详细使用指南
-```
-
-## 🛠️ 技术架构
-
-- **视频下载**: yt-dlp
-- **音频提取**: FFmpeg
-- **语音转录**: OpenAI Whisper (本地模型)
-- **AI 总结**: OpenRouter API (Claude/Gemini 等)
-- **配置管理**: Pydantic Settings
-- **环境管理**: uv (推荐)
-
-## 📜 许可证
-
-本项目基于 MIT 许可证开源，详情请查看 [LICENSE](LICENSE) 文件。
-
-## 🙏 致谢
-
-- 视频下载: [yt-dlp](https://github.com/yt-dlp/yt-dlp)
-- 音频提取: [FFmpeg](https://ffmpeg.org/)
-- 语音转录: [OpenAI Whisper](https://github.com/openai/whisper) (本地)
-- AI 总结: [OpenRouter](https://openrouter.ai/)
-
-## 📞 支持
-
-如果你在使用过程中遇到问题，请：
-
-1. 查看 [故障排除](#-故障排除) 部分
-2. 查看 [QUICK_START.md](QUICK_START.md) 快速开始指南
-3. 查看 [USAGE_GUIDE.md](USAGE_GUIDE.md) 详细使用说明
-4. 在 GitHub 上提交 Issue
+**每个 8分钟视频**:
+- 本地 Whisper 转录：**免费**（使用你的硬件）
+- OpenRouter（Gemini 2.5 Flash）：~$0.02-0.05
+- **总计：约 $0.02-0.05/视频**
 
 ---
 
-⭐ **如果这个项目对你有帮助，请给我们一个 Star!**
+## 🛠️ 技术架构 | Architecture
+
+- **视频下载 | Video Download**: [yt-dlp](https://github.com/yt-dlp/yt-dlp)
+- **音频提取 | Audio Extraction**: [FFmpeg](https://ffmpeg.org/)
+- **语音转录 | Speech-to-Text**: [OpenAI Whisper](https://github.com/openai/whisper) (本地 | local)
+- **AI 总结 | AI Summarization**: [OpenRouter](https://openrouter.ai/) (Claude/Gemini 等 | etc)
+- **环境管理 | Env Management**: [uv](https://github.com/astral-sh/uv) (推荐 | recommended)
+
+## 📜 许可证 | License
+
+MIT License - 详见 [LICENSE](LICENSE) 文件 | See [LICENSE](LICENSE) file
+
+## 🙏 致谢 | Credits
+
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - 视频下载 | Video download
+- [FFmpeg](https://ffmpeg.org/) - 音频提取 | Audio extraction
+- [OpenAI Whisper](https://github.com/openai/whisper) - 本地转录 | Local transcription
+- [OpenRouter](https://openrouter.ai/) - AI 总结 | AI summarization
+
+---
+
+<div align="center">
+
+⭐ **Star this repo if helpful!** | **如果有用请给个 Star！**
+
+[⬆ Back to Top](#video-to-notes-skill--视频转笔记技能)
+
+</div>
