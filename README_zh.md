@@ -99,19 +99,50 @@ MAX_VIDEO_LENGTH=7200
 
 ### Claude Code 集成
 
-在 Claude Code 中直接使用技能：
+在 Claude Code 中使用自然语言与技能交互：
 
+**基础用法:**
 ```
-/video-to-notes https://www.youtube.com/watch?v=dQw4w9WgXcQ
-```
-
-```
-/video-to-notes https://www.bilibili.com/video/BV1LzqLBaE1B --language zh
+请将这个YouTube视频转换为笔记：https://www.youtube.com/watch?v=dQw4w9WgXcQ
 ```
 
 ```
-/video-to-notes https://... --save-to-file --output-path ./notes
+请将这个Bilibili视频转换为中文笔记：https://www.bilibili.com/video/BV1LzqLBaE1B
 ```
+
+**指定语言:**
+```
+请用日语总结这个视频：https://www.youtube.com/watch?v=VIDEO_ID
+```
+
+```
+请用英语总结这个视频：https://www.bilibili.com/video/BV...
+```
+
+**保存到文件:**
+```
+请处理这个视频并将笔记保存到 ./notes 目录：https://...
+```
+
+```
+请处理这个视频并将笔记保存到 my_notes 文件夹：https://...
+```
+
+**高级选项:**
+```
+请使用 Claude AI 模型总结这个视频：https://...
+```
+
+```
+请用 Gemini AI 模型处理这个视频并生成笔记：https://...
+```
+
+**多语言支持:**
+- 中文: "请将这个视频转换为中文笔记"
+- 英文: "Convert this video to English notes"
+- 日语: "この動画を日本語でノートに変換してください"
+- 韩语: "이 비디오를 한국어 노트로 변환해주세요"
+- 自动检测: "Convert this video to notes" (语言将自动检测)
 
 ## ⚙️ 参数说明
 
