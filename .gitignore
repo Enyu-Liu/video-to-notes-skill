@@ -1,0 +1,83 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments (uv)
+.venv/
+venv/
+ENV/
+env/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+temp/
+tmp/
+*.log
+*.mp3
+*.mp4
+*.m4a
+*.wav
+*.wma
+*.aac
+*.flac
+*.ogg
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mkv
+notes/
+*.md.tmp
+
+# Test output
+test_output.txt
+test_results.txt
+
+# FFmpeg temp files
+*.part
+*.ytdl
+
+# API keys and sensitive data
+config/secrets.json
+secrets.json
+*.key
+*.pem
