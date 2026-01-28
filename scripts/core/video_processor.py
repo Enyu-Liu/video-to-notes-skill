@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.settings import get_settings
 from core.exceptions import VideoDownloadError, AudioExtractionError
+from core.xiaohongshu_downloader import XiaohongshuDownloader, RegionalRestrictionError
 
 logger = logging.getLogger(__name__)
 
@@ -27,13 +28,16 @@ class VideoProcessor:
     def __init__(self):
         self.settings = get_settings()
         self.temp_dir = Path(self.settings.temp_directory)
+        # Create temp directory on-demand when needed
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
 
-    def download_video(self, url: str) -> Tuple[str, dict]:
+    def download_video(self, url: str, cookies_file: Optional[str] = None) -> Tuple[str, dict]:
         """
         Download video from URL and return video path and metadata
 
         Args:
-            url: Video URL (bilibili or youtube)
+            url: Video URL (bilibili, youtube, or xiaohongshu)
+            cookies_file: Optional path to cookies.txt file for authentication
 
         Returns:
             Tuple of (video_path, metadata)
@@ -41,16 +45,20 @@ class VideoProcessor:
         Raises:
             VideoDownloadError: If download fails
         """
+        # Check if this is a Xiaohongshu URL
+        if XiaohongshuDownloader.is_xiaohongshu_url(url):
+            return self._download_xiaohongshu_video(url)
+
         # Custom logger to redirect yt-dlp output to stderr
         class YtdlpLogger:
             def debug(self, msg):
-                if msg.startswith('[debug] '):
-                    logger.debug(msg)
-                else:
-                    logger.info(msg)
+                # Suppress debug messages to reduce log verbosity
+                pass
 
             def info(self, msg):
-                logger.info(msg)
+                # Only log important messages, skip download progress
+                if not msg.startswith('[download]'):
+                    logger.info(msg)
 
             def warning(self, msg):
                 logger.warning(msg)
@@ -59,8 +67,10 @@ class VideoProcessor:
                 logger.error(msg)
 
         # Configure download options
+        # Use flexible format selection: prefer mp4 with audio, fallback to any format with audio
+        # Since we only need audio for transcription, prioritize formats that include audio
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best',
             'outtmpl': str(self.temp_dir / '%(title)s.%(ext)s'),
             'restrictfilenames': True,
             'noplaylist': True,
@@ -68,11 +78,22 @@ class VideoProcessor:
             'no_warnings': True,  # Suppress warnings to stdout
             'logger': YtdlpLogger(),  # Use custom logger that writes to stderr
             'socket_timeout': 60,  # Increase timeout to 60 seconds
-            'retries': 3,  # Retry 3 times on failure
-            'fragment_retries': 3,  # Retry fragments
+            'retries': 5,  # Retry 5 times on failure
+            'fragment_retries': 5,  # Retry fragments
             'noresizebuffer': True,  # Don't use resume
             'http_chunk_size': 10485760,  # 10MB chunks
+            'merge_output_format': 'mp4',  # Merge to mp4 format
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',  # Modern browser UA
         }
+
+        # Add cookies file if provided (for YouTube bot detection bypass)
+        if cookies_file:
+            cookies_path = Path(cookies_file)
+            if cookies_path.exists():
+                ydl_opts['cookiefile'] = str(cookies_path)
+                logger.info(f"Using cookies file: {cookies_file}")
+            else:
+                logger.warning(f"Cookies file not found: {cookies_file}")
 
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -104,6 +125,14 @@ class VideoProcessor:
                     raise VideoDownloadError("Downloaded video file not found")
 
                 # Prepare metadata
+                # Determine platform
+                if 'youtube' in url or 'youtu.be' in url:
+                    platform = 'youtube'
+                elif 'bilibili' in url:
+                    platform = 'bilibili'
+                else:
+                    platform = 'unknown'
+
                 metadata = {
                     'title': info.get('title', 'Unknown'),
                     'uploader': info.get('uploader', 'Unknown'),
@@ -112,13 +141,49 @@ class VideoProcessor:
                     'upload_date': info.get('upload_date', ''),
                     'url': url,
                     'id': info.get('id', ''),
-                    'platform': 'youtube' if 'youtube' in url else 'bilibili'
+                    'platform': platform
                 }
 
                 return str(video_path), metadata
 
         except Exception as e:
             raise VideoDownloadError(f"Failed to download video: {str(e)}")
+
+    def _download_xiaohongshu_video(self, url: str) -> Tuple[str, dict]:
+        """
+        Download video from Xiaohongshu
+
+        Args:
+            url: Xiaohongshu URL
+
+        Returns:
+            Tuple of (video_path, metadata)
+
+        Raises:
+            VideoDownloadError: If download fails
+        """
+        try:
+            downloader = XiaohongshuDownloader(self.temp_dir)
+            video_path, metadata = downloader.download(url)
+
+            if not video_path or not metadata:
+                raise VideoDownloadError("Failed to download Xiaohongshu video")
+
+            # Check video duration
+            duration = metadata.get('duration', 0)
+            if duration > self.settings.max_video_length:
+                raise VideoDownloadError(
+                    f"Video too long: {duration}s > {self.settings.max_video_length}s"
+                )
+
+            return video_path, metadata
+
+        except RegionalRestrictionError as e:
+            raise VideoDownloadError(str(e))
+        except VideoDownloadError:
+            raise
+        except Exception as e:
+            raise VideoDownloadError(f"Failed to download Xiaohongshu video: {str(e)}")
 
     async def extract_audio(self, video_path: str) -> str:
         """
@@ -254,22 +319,43 @@ class VideoProcessor:
                 # Log error but don't raise as cleanup should not stop processing
                 logger.warning(f"Failed to cleanup {file_path}: {str(e)}")
 
-    def get_video_info(self, url: str) -> dict:
+    def get_video_info(self, url: str, cookies_file: Optional[str] = None) -> dict:
         """
         Get video information without downloading
 
         Args:
             url: Video URL
+            cookies_file: Optional path to cookies.txt file for authentication
 
         Returns:
             Video metadata dictionary
         """
+        # Handle Xiaohongshu URLs - need to download to get full info
+        if XiaohongshuDownloader.is_xiaohongshu_url(url):
+            # For Xiaohongshu, we need to fetch the page to get metadata
+            # Return basic info with note ID
+            note_id = XiaohongshuDownloader.extract_note_id(url)
+            return {
+                'title': f'Xiaohongshu Note {note_id}',
+                'uploader': 'Unknown',
+                'duration': 0,
+                'description': '',
+                'upload_date': '',
+                'url': url,
+                'id': note_id or '',
+                'platform': 'xiaohongshu',
+                'duration_formatted': '00:00:00'
+            }
+
         # Custom logger to redirect yt-dlp output to stderr
         class YtdlpLogger:
             def debug(self, msg):
-                logger.debug(msg)
+                # Suppress debug messages
+                pass
             def info(self, msg):
-                logger.info(msg)
+                # Only log important messages, skip download progress
+                if not msg.startswith('[download]'):
+                    logger.info(msg)
             def warning(self, msg):
                 logger.warning(msg)
             def error(self, msg):
@@ -283,9 +369,23 @@ class VideoProcessor:
             'socket_timeout': 60,  # Increase timeout to 60 seconds
         }
 
+        # Add cookies file if provided (for YouTube bot detection bypass)
+        if cookies_file:
+            cookies_path = Path(cookies_file)
+            if cookies_path.exists():
+                ydl_opts['cookiefile'] = str(cookies_path)
+
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
+
+                # Determine platform
+                if 'youtube' in url or 'youtu.be' in url:
+                    platform = 'youtube'
+                elif 'bilibili' in url:
+                    platform = 'bilibili'
+                else:
+                    platform = 'unknown'
 
                 return {
                     'title': info.get('title', 'Unknown'),
@@ -295,7 +395,7 @@ class VideoProcessor:
                     'upload_date': info.get('upload_date', ''),
                     'url': url,
                     'id': info.get('id', ''),
-                    'platform': 'youtube' if 'youtube' in url else 'bilibili',
+                    'platform': platform,
                     'duration_formatted': str(timedelta(seconds=info.get('duration', 0)))
                 }
         except Exception as e:

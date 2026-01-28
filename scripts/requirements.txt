@@ -1,6 +1,9 @@
 # Video processing dependencies
 yt-dlp>=2024.1.0
 
+# YouTube transcript fetching (alternative to video download)
+youtube-transcript-api>=1.0.0
+
 # Local Whisper transcription
 openai-whisper>=20231117
 

@@ -1,11 +1,11 @@
 ---
 name: video-to-notes
-description: Convert YouTube and Bilibili videos into AI-powered structured Markdown notes using local Whisper transcription. Use this skill when users want to: (1) Process video URLs from YouTube or Bilibili, (2) Generate learning notes or summaries from video content, (3) Extract and transcribe video audio offline, (4) Create study materials from video lectures or tutorials. Keywords that trigger this skill include "video to notes", "summarize video", "transcribe video", "video summary", "YouTube notes", "Bilibili notes", "video markdown".
+description: Convert YouTube, Bilibili, and Xiaohongshu videos into AI-powered structured Markdown notes using local Whisper transcription. Use this skill when users want to: (1) Process video URLs from YouTube, Bilibili, or Xiaohongshu, (2) Generate learning notes or summaries from video content, (3) Extract and transcribe video audio offline, (4) Create study materials from video lectures or tutorials, (5) Process local video files. Keywords that trigger this skill include "video to notes", "summarize video", "transcribe video", "video summary", "YouTube notes", "Bilibili notes", "Xiaohongshu notes", "小红书", "video markdown".
 ---
 
 # Video-to-Notes Skill
 
-Convert YouTube and Bilibili videos into AI-powered structured Markdown notes using local OpenAI Whisper for transcription and OpenRouter for AI summarization.
+Convert YouTube, Bilibili, and Xiaohongshu videos into AI-powered structured Markdown notes using local OpenAI Whisper for transcription and OpenRouter for AI summarization.
 
 ## Quick Start
 
@@ -25,41 +25,39 @@ The script will:
 
 ## Prerequisites
 
-Before using this skill, ensure:
+The skill automatically checks for required dependencies when invoked. Ensure:
 
-1. **System dependencies are installed**:
+1. **System dependencies**:
    - FFmpeg (for audio extraction)
    - yt-dlp (for video downloads)
    - Python 3.10+ with pip
 
-2. **API keys are configured** in `.env` file:
-   - `OPENROUTER_API_KEY` - For AI summarization
+2. **API configuration** in `.env` file:
+   - `OPENROUTER_API_KEY` - Required for AI summarization
 
-3. **Python dependencies are installed**:
-   ```bash
-   cd scripts
-   pip install -r requirements.txt
-   ```
-
-   This installs `openai-whisper` for local transcription (no API key needed).
+3. **Python dependencies** (installed automatically):
+   - `openai-whisper` for local transcription (no API key needed)
+   - Other requirements from `requirements.txt`
 
 ## Core Workflow
 
-When a user requests video processing:
+When invoked, the skill:
 
-1. **Validate environment**: Check that FFmpeg and yt-dlp are available
-2. **Check API key**: Verify OPENROUTER_API_KEY is set
-3. **Call the script**: Execute `python scripts/process_video.py` with appropriate arguments
-4. **Parse output**: The script outputs Markdown to stdout (progress logs go to stderr)
-5. **Present results**: Show the formatted Markdown notes to the user
+1. **Validates environment**: Automatically checks FFmpeg, yt-dlp, and API key
+2. **Processes video**: Calls `python scripts/process_video.py` with appropriate arguments
+3. **Returns output**: Markdown notes to stdout (progress logs to stderr)
+4. **Presents results**: Displays formatted Markdown to the user
 
 ### Command Structure
 
 ```bash
 python scripts/process_video.py \
   --url "VIDEO_URL" \
+  [--local-video PATH] \
+  [--video-title TITLE] \
   [--language LANG_CODE] \
   [--ai-model MODEL_NAME] \
+  [--cookies COOKIES_FILE] \
   [--save-to-file] \
   [--output-path PATH] \
   [--verbose]
@@ -67,19 +65,34 @@ python scripts/process_video.py \
 
 ### Required Arguments
 
-- `--url`: Video URL (YouTube or Bilibili)
+- `--url`: Video URL (YouTube, Bilibili, or Xiaohongshu). Optional if `--local-video` is provided.
 
 ### Optional Arguments
 
+- `--local-video`: Path to local video file (bypasses download, useful for manually downloaded videos)
+- `--video-title`: Video title (used with `--local-video`)
 - `--language`: Language code (e.g., 'zh', 'en'). Omit for auto-detection.
 - `--ai-model`: AI model for summarization (default: anthropic/claude-3.5-sonnet)
+- `--cookies`: Path to cookies.txt file for YouTube authentication (bypass bot detection)
+- `--use-youtube-captions`: **Recommended for YouTube** - Use YouTube's built-in captions instead of downloading video (faster, bypasses download restrictions)
 - `--save-to-file`: Save output to markdown file in addition to stdout
-- `--output-path`: Custom output directory (default: ./notes)
+- `--output-path`: Custom output directory (default: current directory)
 - `--verbose`: Enable debug logging
 
 ## Common Usage Patterns
 
-### Basic video processing
+### YouTube video with captions (Recommended - Fast, No Download)
+```bash
+python scripts/process_video.py --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --use-youtube-captions --save-to-file
+```
+
+This method:
+- Uses YouTube's built-in captions (no video download needed)
+- Bypasses YouTube bot detection and 403 errors
+- Much faster (~10 seconds vs ~60+ seconds)
+- Works without cookies
+
+### Basic video processing (with download)
 ```bash
 python scripts/process_video.py --url "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 ```
@@ -88,6 +101,22 @@ python scripts/process_video.py --url "https://www.youtube.com/watch?v=dQw4w9WgX
 ```bash
 python scripts/process_video.py \
   --url "https://www.bilibili.com/video/BV1xx411c7XZ" \
+  --language zh
+```
+
+### Xiaohongshu video (within mainland China)
+```bash
+python scripts/process_video.py \
+  --url "https://www.xiaohongshu.com/explore/VIDEO_ID" \
+  --language zh
+```
+
+### Local video file (for manually downloaded videos)
+```bash
+python scripts/process_video.py \
+  --local-video "./downloaded_video.mp4" \
+  --video-title "Video Title" \
+  --url "https://original-source-url" \
   --language zh
 ```
 
@@ -108,24 +137,52 @@ python scripts/process_video.py \
 
 ## Output Format
 
-The script generates structured Markdown:
+The script generates structured Markdown with the following features:
+
+**Format Enhancements:**
+- **Code formatting**: Technical terms, commands, and function names use `inline code` format
+- **Multi-line code blocks**: Code snippets use proper ``` syntax with language identifiers
+- **Smart examples**: When concepts are complex or abstract, the AI provides concrete examples that:
+  - Are closely tied to the video content
+  - Are naturally integrated into the note structure
+  - Help clarify technical details or abstract ideas
+  - Avoid over-expansion while maintaining clarity
+
+**Example structure:**
 
 ```markdown
-# Video Title
+# Refined Title Based on Video Content
 
-## 核心要点
-- Key point 1
-- Key point 2
-- Key point 3
-
-## 详细总结
-Detailed AI-generated summary...
-
----
 **来源**: [Video URL]
 **时长**: HH:MM:SS
 **作者**: Channel Name
 **处理时间**: YYYY-MM-DD HH:MM:SS
+
+> **核心要点**
+> 1. First key point
+> 2. Second key point
+> 3. Third key point
+
+## 1. Section Title
+
+Detailed content with proper formatting. Technical terms like `React` and `HTTP` are
+formatted as inline code. When discussing implementation:
+
+```python
+# Example code with syntax highlighting
+def example_function():
+    return "Hello World"
+```
+
+The video explains this concept using a practical example: imagine a scenario where...
+
+### 1.1 Subsection Title
+
+More detailed content naturally integrating examples when needed...
+
+## 2. Next Section Title
+
+...
 ```
 
 ## Performance
@@ -164,10 +221,71 @@ When errors occur, check:
 ## Limitations
 
 1. **Video length**: Can process long videos (no audio file size limit like API-based solutions)
-2. **Platforms**: Currently supports YouTube and Bilibili only
-3. **API costs**: Only AI summarization costs (~$0.02-0.05 per video). Transcription is FREE.
-4. **Processing location**: Script runs locally; requires internet for download and AI API only
-5. **Hardware**: Larger Whisper models require more RAM/VRAM
+2. **Platforms**: Supports YouTube, Bilibili, and Xiaohongshu
+3. **YouTube bot detection**: YouTube may require authentication. Use `--cookies` option with exported cookies file.
+4. **Xiaohongshu regional restriction**: Xiaohongshu blocks access from outside mainland China. Use `--local-video` option for manually downloaded videos.
+5. **API costs**: Only AI summarization costs (~$0.02-0.05 per video). Transcription is FREE.
+6. **Processing location**: Script runs locally; requires internet for download and AI API only
+7. **Hardware**: Larger Whisper models require more RAM/VRAM
+
+## YouTube Bot Detection Bypass
+
+YouTube has strengthened its anti-bot measures. If you encounter "Sign in to confirm you're not a bot" errors, use cookies authentication:
+
+### Step 1: Export YouTube Cookies
+
+Use a browser extension to export cookies in Netscape format:
+
+**Recommended extensions:**
+- **Chrome**: [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) or [Export Cookies](https://chromewebstore.google.com/detail/export-cookies/okchdmicnlfpkoikbkllnmjmkjhldehe)
+- **Firefox**: [cookies.txt](https://addons.mozilla.org/firefox/addon/cookies-txt/)
+- **Edge**: Search for "cookies.txt" in Edge Add-ons
+
+**Export steps:**
+1. Install a cookies export extension
+2. Log in to YouTube in your browser
+3. Navigate to youtube.com
+4. Click the extension icon and export cookies
+5. Save as `cookies.txt` in the scripts directory
+
+### Step 2: Use Cookies with the Script
+
+```bash
+python scripts/process_video.py \
+  --url "https://www.youtube.com/watch?v=VIDEO_ID" \
+  --cookies "./cookies.txt" \
+  --save-to-file
+```
+
+### Environment Variable (Optional)
+
+You can set a default cookies file in `.env`:
+
+```env
+YOUTUBE_COOKIES=./cookies.txt
+```
+
+### Important Notes
+
+- **Keep cookies private**: Never share your cookies.txt file
+- **Refresh periodically**: Cookies may expire; re-export if downloads fail
+- **Close browser first**: Some browsers lock cookies; close Chrome/Edge before exporting
+- **Alternative**: Use `--local-video` option with manually downloaded videos
+
+## Xiaohongshu Support
+
+Xiaohongshu (小红书) videos have regional restrictions. If you're accessing from outside mainland China:
+
+1. **Download manually**: Use tools like [dlbunny.com/en/xhs](https://dlbunny.com/en/xhs) to download the video
+2. **Use local-video option**: Process the downloaded video with:
+   ```bash
+   python scripts/process_video.py \
+     --local-video "./xiaohongshu_video.mp4" \
+     --video-title "视频标题" \
+     --url "https://www.xiaohongshu.com/explore/VIDEO_ID" \
+     --language zh \
+     --save-to-file
+   ```
 
 ## Advanced Configuration
 
@@ -182,9 +300,12 @@ OPENROUTER_API_KEY=sk-or-v1-...
 # Whisper model size (tiny/base/small/medium/large)
 WHISPER_MODEL=base
 
+# Default language (zh/en/auto)
+DEFAULT_LANGUAGE=zh
+
 # Optional
 AI_MODEL=google/gemini-2.5-flash
-OUTPUT_DIRECTORY=./notes
+OUTPUT_DIRECTORY=.
 TEMP_DIRECTORY=./temp
 LOG_LEVEL=INFO
 MAX_VIDEO_LENGTH=7200
@@ -208,8 +329,6 @@ MAX_VIDEO_LENGTH=7200
 - `openai/gpt-4-turbo` - High quality, higher cost
 
 ## Troubleshooting
-
-For detailed troubleshooting information, see [references/troubleshooting.md](references/troubleshooting.md).
 
 **Quick fixes:**
 
@@ -243,20 +362,23 @@ When implementing this skill:
 
 ```
 video-to-notes-skill/
-├── SKILL.md                   # This file
-├── scripts/                   # Core processing scripts
-│   ├── process_video.py       # Main CLI script
-│   ├── core/                  # Core modules
-│   │   ├── video_processor.py # yt-dlp + FFmpeg
-│   │   ├── transcriber.py     # Local Whisper model
-│   │   ├── summarizer.py      # OpenRouter API
-│   │   └── exceptions.py      # Custom exceptions
-│   ├── config/
-│   │   └── settings.py        # Configuration management
-│   └── requirements.txt       # Python dependencies
+├── SKILL.md                   # This file (Claude Code skill definition)
+├── LICENSE                    # MIT License
+├── README.md                  # English documentation
+├── README_zh.md               # Chinese documentation
 ├── .env.example               # Environment template
-├── .env                       # Your configuration (git-ignored)
-├── references/
-│   └── troubleshooting.md     # Detailed troubleshooting
-└── README.md                  # User documentation
+├── .gitignore                 # Git ignore rules
+└── scripts/                   # Core processing scripts
+    ├── process_video.py       # Main CLI script
+    ├── requirements.txt       # Python dependencies
+    ├── pyproject.toml         # Python project config
+    ├── core/                  # Core modules
+    │   ├── video_processor.py # yt-dlp + FFmpeg
+    │   ├── youtube_transcript.py  # YouTube captions
+    │   ├── xiaohongshu_downloader.py  # Xiaohongshu support
+    │   ├── transcriber.py     # Local Whisper model
+    │   ├── summarizer.py      # OpenRouter API
+    │   └── exceptions.py      # Custom exceptions
+    └── config/
+        └── settings.py        # Configuration management
 ```

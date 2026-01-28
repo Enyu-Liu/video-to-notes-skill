@@ -25,52 +25,32 @@ Convert YouTube and Bilibili videos into structured AI-powered Markdown notes us
 - 🔒 **Privacy-focused**: Audio processed locally, never leaves your machine
 - 🌍 **Multi-platform**: YouTube, Bilibili
 - ⚡ **Fast**: 2-3 minutes for an 8-minute video
+- 📝 **Format-aware**: Auto-formats code with Markdown (`inline code`, ```code blocks```)
+- 💡 **Smart expansion**: Provides clear examples for complex concepts, naturally integrated into notes
 
 ## 🚀 Quick Start
 
-### 1. Install System Dependencies
+> **Note for Claude Code Users**: When using this skill in Claude Code, the environment will be checked automatically. You only need to ensure FFmpeg, yt-dlp, and Python dependencies are installed, and your OpenRouter API key is configured.
 
-**FFmpeg** (Required for audio extraction):
-```bash
-# Windows
-choco install ffmpeg
+### Manual Setup (for standalone use)
 
-# macOS
-brew install ffmpeg
+#### 1. Install System Dependencies
 
-# Linux
-sudo apt-get install ffmpeg
-```
+- **FFmpeg** (for audio extraction): [Download FFmpeg](https://ffmpeg.org/download.html)
+- **yt-dlp** (for video downloading): `pip install yt-dlp`
 
-**yt-dlp** (Required for video downloading):
-```bash
-# Install globally as a system tool
-pip install yt-dlp
-```
-
-### 2. Setup Python Environment (with uv)
+#### 2. Setup Python Environment
 
 ```bash
-# Clone the repository
-git clone https://github.com/Enyu-Liu/video-to-notes-skill.git
-cd video-to-notes-skill/scripts
-
-# Create virtual environment with uv (recommended)
-uv venv .venv
-
-# Activate virtual environment
-# Windows:
-.venv\Scripts\activate
-# macOS/Linux:
-source .venv/bin/activate
+cd scripts
 
 # Install Python dependencies
-uv pip install -r requirements.txt
+pip install -r requirements.txt
+# Or use uv for faster installation:
+# uv pip install -r requirements.txt
 ```
 
-**Note**: `yt-dlp` appears in both system installation (for CLI) and `requirements.txt` (for Python import). Both are required.
-
-### 3. Configure Environment
+#### 3. Configure Environment
 
 ```bash
 # Copy environment template
@@ -87,11 +67,20 @@ OPENROUTER_API_KEY=sk-or-your-key-here
 # Optional configurations
 AI_MODEL=google/gemini-2.5-flash
 WHISPER_MODEL=base
-OUTPUT_DIRECTORY=./notes
+DEFAULT_LANGUAGE=zh
+OUTPUT_DIRECTORY=.
 TEMP_DIRECTORY=./temp
 LOG_LEVEL=INFO
 MAX_VIDEO_LENGTH=7200
 ```
+
+**Language Configuration:**
+- `DEFAULT_LANGUAGE`: Set your preferred language for transcription and AI summary
+  - `zh` - Chinese (中文) - **Default**
+  - `en` - English
+  - `auto` - Auto-detect
+
+**Note:** The language setting affects both Whisper transcription and AI-generated summary output.
 
 **Get API Key**: Visit [OpenRouter.ai](https://openrouter.ai/), sign up, create API key, add credits ($5-10 is enough for hundreds of videos).
 
@@ -112,11 +101,11 @@ Please convert this YouTube video to notes: https://www.youtube.com/watch?v=dQw4
 
 **With Specific Language:**
 ```
-Summarize this video in Japanese: https://www.youtube.com/watch?v=VIDEO_ID
+Summarize this video in English: https://www.youtube.com/watch?v=VIDEO_ID
 ```
 
 ```
-请用英语总结这个视频：https://www.bilibili.com/video/BV...
+Summarize this video in Chinese: https://www.bilibili.com/video/BV...
 ```
 
 **Save to File:**
@@ -140,8 +129,6 @@ Convert this video to notes using Claude for summarization: https://...
 **Multiple Language Support:**
 - Chinese: "请将这个视频转换为中文笔记"
 - English: "Convert this video to English notes"
-- Japanese: "この動画を日本語でノートに変換してください"
-- Korean: "이 비디오를 한국어 노트로 변환해주세요"
 - Auto-detect: "Convert this video to notes" (language will be auto-detected)
 
 
@@ -150,10 +137,10 @@ Convert this video to notes using Claude for summarization: https://...
 | Parameter | Type | Required | Description | Examples |
 |-----------|------|----------|-------------|----------|
 | `url` | string | ✅ Yes | Video URL (YouTube or Bilibili) | `https://www.youtube.com/watch?v=...`<br>`https://www.bilibili.com/video/BV...` |
-| `--language` | string | No | Language code for transcription | `zh` (Chinese)<br>`en` (English)<br>`ja` (Japanese)<br>`ko` (Korean)<br>`auto` (auto-detect) |
+| `--language` | string | No | Language code for transcription | `zh` (Chinese)<br>`en` (English)<br>`auto` (auto-detect) |
 | `--ai-model` | string | No | AI model for summarization | `google/gemini-2.5-flash` (recommended)<br>`anthropic/claude-3.5-sonnet`<br>`openai/gpt-4-turbo` |
 | `--save-to-file` | flag | No | Save output to markdown file | `--save-to-file` |
-| `--output-path` | string | No | Outputmy_notes`<br>` directory path | `.//path/to/notes` |
+| `--output-path` | string | No | Output directory path | `./my_notes`<br>`../notes`<br>`/path/to/notes` |
 | `--verbose` | flag | No | Enable verbose logging | `--verbose` |
 
 ### Language Options
@@ -163,11 +150,6 @@ Convert this video to notes using Claude for summarization: https://...
 | `auto` | Auto-detect (default) | `--language auto` |
 | `zh` | Chinese (中文) | `--language zh` |
 | `en` | English | `--language en` |
-| `ja` | Japanese (日本語) | `--language ja` |
-| `ko` | Korean (한국어) | `--language ko` |
-| `es` | Spanish (Español) | `--language es` |
-| `fr` | French (Français) | `--language fr` |
-| `de` | German (Deutsch) | `--language de` |
 
 ### AI Model Options
 
@@ -181,29 +163,59 @@ Convert this video to notes using Claude for summarization: https://...
 
 | Path Type | Example | Description |
 |-----------|---------|-------------|
-| Relative | `./notes` | Relative to `scripts/` directory |
+| Current | `.` | Current directory (default) |
+| Relative | `./notes` | Subdirectory relative to current location |
 | Relative | `../my_notes` | Parent directory |
 | Absolute | `/Users/name/Desktop/notes` | Full system path |
-| Custom | `./output/video_notes` | Custom subdirectory |
 
 ## 📊 Output Example
 
+Generated notes have the following format features:
+
+**Format Enhancements:**
+- **Code formatting**: Technical terms, commands, function names use `inline code` format
+- **Multi-line code blocks**: Code snippets use proper ``` syntax with language identifiers
+- **Smart examples**: When concepts are complex or abstract, AI provides concrete examples that:
+  - Are closely tied to video content
+  - Are naturally integrated into note structure
+  - Help clarify technical details or abstract concepts
+  - Avoid over-expansion while maintaining clarity
+
+**Example structure:**
+
 ```markdown
-# Video Title
+# Refined Title Based on Video Content
 
-## Core Points
-- Key point 1
-- Key point 2
-- Key point 3
-
-## Detailed Summary
-AI-generated detailed summary of the video content...
-
----
 **Source**: https://www.youtube.com/watch?v=...
 **Duration**: 0:08:45
 **Author**: Channel Name
 **Processed**: 2025-01-15 14:30:00
+
+> **Core Points**
+> 1. First key point
+> 2. Second key point
+> 3. Third key point
+
+## 1. Section Title
+
+Detailed content with proper formatting. Technical terms like `React` and `HTTP` are
+formatted as inline code. When discussing implementation:
+
+```python
+# Example code with syntax highlighting
+def example_function():
+    return "Hello World"
+```
+
+The video explains this concept using a practical example: imagine a scenario where...
+
+### 1.1 Subsection Title
+
+More detailed content, naturally integrating examples when needed...
+
+## 2. Next Section Title
+
+...
 ```
 
 ## ⚙️ Configuration Reference
@@ -215,8 +227,9 @@ AI-generated detailed summary of the video content...
 | `OPENROUTER_API_KEY` | ✅ Yes | - | OpenRouter API key for AI summarization |
 | `AI_MODEL` | No | `anthropic/claude-3.5-sonnet` | AI model for summarization |
 | `WHISPER_MODEL` | No | `base` | Whisper model size (tiny/base/small/medium/large) |
-| `OUTPUT_DIRECTORY` | No | `./notes` | Output directory for saved notes |
-| `TEMP_DIRECTORY` | No | `./temp` | Temporary directory for processing |
+| `DEFAULT_LANGUAGE` | No | `zh` | Default language for transcription and summary (zh/en/auto) |
+| `OUTPUT_DIRECTORY` | No | `.` | Output directory for saved notes (default: current directory) |
+| `TEMP_DIRECTORY` | No | `./temp` | Temporary directory (always in skill folder, auto-created) |
 | `LOG_LEVEL` | No | `INFO` | Logging level (DEBUG, INFO, WARNING, ERROR) |
 | `MAX_VIDEO_LENGTH` | No | `7200` | Maximum video length in seconds (2 hours) |
 

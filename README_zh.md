@@ -25,52 +25,32 @@
 - 🔒 **隐私保护**: 音频本地处理，绝不离开你的机器
 - 🌍 **多平台**: YouTube、Bilibili
 - ⚡ **快速**: 8分钟视频只需2-3分钟
+- 📝 **格式规范**: 自动使用 Markdown 代码格式（`单行代码`、```多行代码```）
+- 💡 **智能扩展**: 对复杂概念自动提供清晰示例，自然融入笔记框架
 
 ## 🚀 快速开始
 
-### 1. 安装系统依赖
+> **Claude Code 用户注意**: 在 Claude Code 中使用此技能时,环境会自动检查。你只需确保已安装 FFmpeg、yt-dlp 和 Python 依赖,并配置好 OpenRouter API 密钥。
 
-**FFmpeg** (音频提取必需):
-```bash
-# Windows
-choco install ffmpeg
+### 手动设置（独立使用）
 
-# macOS
-brew install ffmpeg
+#### 1. 安装系统依赖
 
-# Linux
-sudo apt-get install ffmpeg
-```
+- **FFmpeg** (音频提取): [下载 FFmpeg](https://ffmpeg.org/download.html)
+- **yt-dlp** (视频下载): `pip install yt-dlp`
 
-**yt-dlp** (视频下载必需):
-```bash
-# 全局安装为系统工具
-pip install yt-dlp
-```
-
-### 2. 设置 Python 环境（使用 uv）
+#### 2. 设置 Python 环境
 
 ```bash
-# 克隆仓库
-git clone https://github.com/Enyu-Liu/video-to-notes-skill.git
-cd video-to-notes-skill/scripts
-
-# 使用 uv 创建虚拟环境（推荐）
-uv venv .venv
-
-# 激活虚拟环境
-# Windows:
-.venv\Scripts\activate
-# macOS/Linux:
-source .venv/bin/activate
+cd scripts
 
 # 安装 Python 依赖
-uv pip install -r requirements.txt
+pip install -r requirements.txt
+# 或使用 uv 更快速安装:
+# uv pip install -r requirements.txt
 ```
 
-**注意**: `yt-dlp` 在系统安装（用于 CLI）和 `requirements.txt`（用于 Python 导入）中都出现。两者都需要。
-
-### 3. 配置环境
+#### 3. 配置环境
 
 ```bash
 # 复制环境变量模板
@@ -87,11 +67,20 @@ OPENROUTER_API_KEY=sk-or-your-key-here
 # 可选配置
 AI_MODEL=google/gemini-2.5-flash
 WHISPER_MODEL=base
-OUTPUT_DIRECTORY=./notes
+DEFAULT_LANGUAGE=zh
+OUTPUT_DIRECTORY=.
 TEMP_DIRECTORY=./temp
 LOG_LEVEL=INFO
 MAX_VIDEO_LENGTH=7200
 ```
+
+**语言配置说明:**
+- `DEFAULT_LANGUAGE`: 设置转录和AI总结的首选语言
+  - `zh` - 中文 - **默认**
+  - `en` - English (英语)
+  - `auto` - 自动检测
+
+**注意:** 语言设置会同时影响 Whisper 转录和 AI 生成的总结输出语言。
 
 **获取 API 密钥**: 访问 [OpenRouter.ai](https://openrouter.ai/)，注册账户，创建 API 密钥，充值（$5-10 足够处理数百个视频）。
 
@@ -112,11 +101,11 @@ MAX_VIDEO_LENGTH=7200
 
 **指定语言:**
 ```
-请用日语总结这个视频：https://www.youtube.com/watch?v=VIDEO_ID
+请用英语总结这个视频：https://www.youtube.com/watch?v=VIDEO_ID
 ```
 
 ```
-请用英语总结这个视频：https://www.bilibili.com/video/BV...
+请用中文总结这个视频：https://www.bilibili.com/video/BV...
 ```
 
 **保存到文件:**
@@ -140,8 +129,6 @@ MAX_VIDEO_LENGTH=7200
 **多语言支持:**
 - 中文: "请将这个视频转换为中文笔记"
 - 英文: "Convert this video to English notes"
-- 日语: "この動画を日本語でノートに変換してください"
-- 韩语: "이 비디오를 한국어 노트로 변환해주세요"
 - 自动检测: "Convert this video to notes" (语言将自动检测)
 
 ## ⚙️ 参数说明
@@ -149,7 +136,7 @@ MAX_VIDEO_LENGTH=7200
 | 参数 | 类型 | 必需 | 说明 | 示例 |
 |------|------|------|------|------|
 | `url` | string | ✅ 是 | 视频链接（YouTube 或 Bilibili） | `https://www.youtube.com/watch?v=...`<br>`https://www.bilibili.com/video/BV...` |
-| `--language` | string | 否 | 转录语言代码 | `zh` (中文)<br>`en` (英文)<br>`ja` (日语)<br>`ko` (韩语)<br>`auto` (自动检测) |
+| `--language` | string | 否 | 转录语言代码 | `zh` (中文)<br>`en` (英文)<br>`auto` (自动检测) |
 | `--ai-model` | string | 否 | 用于总结的 AI 模型 | `google/gemini-2.5-flash` (推荐)<br>`anthropic/claude-3.5-sonnet`<br>`openai/gpt-4-turbo` |
 | `--save-to-file` | flag | 否 | 将输出保存到 markdown 文件 | `--save-to-file` |
 | `--output-path` | string | 否 | 输出目录路径 | `./my_notes`<br>`../notes`<br>`/path/to/notes` |
@@ -162,11 +149,6 @@ MAX_VIDEO_LENGTH=7200
 | `auto` | 自动检测（默认） | `--language auto` |
 | `zh` | 中文 | `--language zh` |
 | `en` | English | `--language en` |
-| `ja` | 日本語 | `--language ja` |
-| `ko` | 한국어 | `--language ko` |
-| `es` | Español | `--language es` |
-| `fr` | Français | `--language fr` |
-| `de` | Deutsch | `--language de` |
 
 ### AI 模型选项
 
@@ -180,29 +162,59 @@ MAX_VIDEO_LENGTH=7200
 
 | 路径类型 | 示例 | 说明 |
 |----------|------|------|
-| 相对路径 | `./notes` | 相对于 `scripts/` 目录 |
+| 当前目录 | `.` | 当前目录（默认） |
+| 相对路径 | `./notes` | 相对于当前位置的子目录 |
 | 相对路径 | `../my_notes` | 上级目录 |
 | 绝对路径 | `/Users/name/Desktop/notes` | 完整系统路径 |
-| 自定义 | `./output/video_notes` | 自定义子目录 |
 
 ## 📊 输出示例
 
+生成的笔记具有以下格式特性：
+
+**格式增强**：
+- **代码格式化**：技术术语、命令、函数名使用 `单行代码` 格式
+- **多行代码块**：代码片段使用正确的 ``` 语法和语言标识符
+- **智能示例**：当概念复杂或抽象时，AI 会提供具体示例：
+  - 紧密围绕视频内容
+  - 自然融入笔记结构
+  - 帮助澄清技术细节或抽象概念
+  - 避免过度扩展的同时保持清晰
+
+**示例结构**：
+
 ```markdown
-# 视频标题
+# 基于视频内容的精炼标题
 
-## 核心要点
-- 要点 1
-- 要点 2
-- 要点 3
-
-## 详细总结
-AI 生成的详细总结内容...
-
----
 **来源**: https://www.youtube.com/watch?v=...
 **时长**: 0:08:45
 **作者**: 频道名称
 **处理时间**: 2025-01-15 14:30:00
+
+> **核心要点**
+> 1. 第一个关键要点
+> 2. 第二个关键要点
+> 3. 第三个关键要点
+
+## 1. 章节标题
+
+详细内容，包含正确的格式。技术术语如 `React` 和 `HTTP` 使用行内代码格式。
+在讨论实现时：
+
+```python
+# 带语法高亮的示例代码
+def example_function():
+    return "Hello World"
+```
+
+视频通过一个实际示例解释了这个概念：想象这样一个场景...
+
+### 1.1 子章节标题
+
+更详细的内容，在需要时自然地整合示例...
+
+## 2. 下一个章节标题
+
+...
 ```
 
 ## ⚙️ 配置参考
@@ -214,8 +226,9 @@ AI 生成的详细总结内容...
 | `OPENROUTER_API_KEY` | ✅ 是 | - | OpenRouter API 密钥（用于 AI 总结） |
 | `AI_MODEL` | 否 | `anthropic/claude-3.5-sonnet` | 用于总结的 AI 模型 |
 | `WHISPER_MODEL` | 否 | `base` | Whisper 模型大小 (tiny/base/small/medium/large) |
-| `OUTPUT_DIRECTORY` | 否 | `./notes` | 笔记保存目录 |
-| `TEMP_DIRECTORY` | 否 | `./temp` | 处理临时目录 |
+| `DEFAULT_LANGUAGE` | 否 | `zh` | 转录和总结的默认语言 (zh/en/auto) |
+| `OUTPUT_DIRECTORY` | 否 | `.` | 笔记保存目录（默认：当前目录） |
+| `TEMP_DIRECTORY` | 否 | `./temp` | 临时目录（始终在skill文件夹中，自动创建） |
 | `LOG_LEVEL` | 否 | `INFO` | 日志级别 (DEBUG, INFO, WARNING, ERROR) |
 | `MAX_VIDEO_LENGTH` | 否 | `7200` | 最大视频长度（秒，2小时） |
 

@@ -81,3 +81,17 @@ config/secrets.json
 secrets.json
 *.key
 *.pem
+
+# Cookies (sensitive authentication data)
+cookies.txt
+**/cookies.txt
+
+# Windows temp files
+nul
+
+# Claude temporary directories
+tmpclaude*/
+**/tmpclaude*/
+
+# Skill package (generated)
+*.skill

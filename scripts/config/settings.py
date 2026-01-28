@@ -1,9 +1,13 @@
 """Configuration settings management"""
 
+import os
 from pathlib import Path
 from typing import Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings
+
+# Get the absolute path to the scripts directory
+SCRIPTS_DIR = Path(__file__).parent.parent.absolute()
 
 
 class Settings(BaseSettings):
@@ -27,15 +31,21 @@ class Settings(BaseSettings):
         description="AI model to use for summarization"
     )
 
+    # Language Configuration
+    default_language: str = Field(
+        default="zh",
+        description="Default language for transcription and summarization (zh/en/ja/ko/es/fr/de/auto)"
+    )
+
     # Directory Configuration
     output_directory: str = Field(
-        default="./notes",
-        description="Directory to save generated notes"
+        default=".",
+        description="Directory to save generated notes (default: current directory)"
     )
 
     temp_directory: str = Field(
-        default="./temp",
-        description="Temporary directory for processing files"
+        default=str(SCRIPTS_DIR / "temp"),
+        description="Temporary directory for processing files (created automatically when needed, always in skill folder)"
     )
 
     # Logging Configuration
@@ -50,9 +60,21 @@ class Settings(BaseSettings):
         description="Maximum video length in seconds to process"
     )
 
+    # YouTube Authentication
+    youtube_cookies: str = Field(
+        default="",
+        description="Path to cookies.txt file for YouTube authentication (bypass bot detection)"
+    )
+
     chunk_size: int = Field(
         default=25 * 1024 * 1024,  # 25MB
         description="Chunk size for processing large files"
+    )
+
+    # API Parameters Configuration
+    max_tokens: int = Field(
+        default=5000,
+        description="Maximum tokens for AI model response (used by summarizer for API calls)"
     )
 
     class Config:
@@ -63,9 +85,8 @@ class Settings(BaseSettings):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Ensure directories exist
-        Path(self.output_directory).mkdir(parents=True, exist_ok=True)
-        Path(self.temp_directory).mkdir(parents=True, exist_ok=True)
+        # Note: Directories are created on-demand when actually needed
+        # This avoids creating unnecessary folders in the current directory
 
 
 # Global settings instance
