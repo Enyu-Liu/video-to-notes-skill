@@ -97,35 +97,13 @@ Please save the notes to my Desktop/notes folder
 See real example: [examples/github-spec-kit-notes.md](examples/github-spec-kit-notes.md)
 
 **Every note includes:**
-
-```markdown
-# Clear Title Based on Content
-
-**Source**: [video URL]
-**Duration**: HH:MM:SS
-**Author**: Channel Name
-**Processed**: timestamp
-
-> **Core Points**
-> 1. Key takeaway one
-> 2. Key takeaway two
-> 3. Key takeaway three
-
-## 1. First Section
-
-Clear explanations with `inline code` formatting...
-
-```python
-# Code blocks with syntax highlighting
-def example():
-    return "properly formatted"
-```
-
-Smart examples when concepts are complex...
-
-## 2. Next Section
-...
-```
+- Clear title based on video content
+- Video metadata (source, duration, author, timestamp)
+- Core takeaways summary (3-7 bullet points)
+- Structured sections with hierarchical headings
+- Technical terms formatted as `inline code`
+- Code examples with syntax highlighting
+- Smart examples when concepts are complex
 
 ---
 
