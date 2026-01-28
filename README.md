@@ -1,108 +1,212 @@
-# Video-to-Notes Skill
+# 🎬 Video-to-Notes Skill
 
-Convert YouTube/Bilibili videos into AI-powered Markdown notes.
-
-Local Whisper transcription (free) + OpenRouter API summarization (~$0.02/video)
+> Transform any YouTube/Bilibili video into structured AI-powered notes — just by chatting with Claude.
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 [中文文档](README_zh.md)
 
-## Features
+---
 
-- **Cost-effective**: Free local transcription, only pay for AI summary
-- **Privacy-focused**: Audio processed locally
-- **Multi-platform**: YouTube, Bilibili, Xiaohongshu
+## ✨ What This Does
 
-## Quick Start
+Drop a video URL in Claude Code, and get back:
+- **Structured markdown notes** with key points, chapters, and code examples
+- **Smart formatting** for technical content (commands, code blocks, examples)
+- **Privacy-first processing** - audio never leaves your machine
+- **Ultra-low cost** - ~$0.02 per video (only AI summary costs money)
 
-### 1. Install Dependencies
+**Perfect for:** Tutorial videos, tech talks, lectures, documentation videos
 
+---
+
+## 🚀 Quick Setup
+
+### Step 1: Install Dependencies
+
+**System Requirements:**
+- [FFmpeg](https://ffmpeg.org/download.html) - for audio extraction
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - `pip install yt-dlp`
+
+**Python Dependencies:**
 ```bash
-# System dependencies
-# - FFmpeg: https://ffmpeg.org/download.html
-# - yt-dlp: pip install yt-dlp
-
-# Python dependencies
 cd scripts
 pip install -r requirements.txt
 ```
 
-### 2. Configure API Key
+### Step 2: Get Your API Key
+
+1. Visit [OpenRouter.ai](https://openrouter.ai/)
+2. Sign up and create an API key
+3. Add $5-10 credits (enough for 200+ videos)
+
+### Step 3: Configure
 
 ```bash
 cp .env.example .env
-# Edit .env, add your OpenRouter API key
+# Edit .env and add: OPENROUTER_API_KEY=sk-or-your-key-here
 ```
 
-Get API key from [OpenRouter.ai](https://openrouter.ai/)
+**That's it!** The skill is ready to use.
 
-### 3. Run
+---
 
-```bash
-python scripts/process_video.py --url "https://www.youtube.com/watch?v=VIDEO_ID" --language zh --save-to-file
+## 💬 How to Use
+
+### In Claude Code (Recommended)
+
+Just talk naturally to Claude:
+
+**English:**
+```
+Convert this video to notes: https://www.youtube.com/watch?v=a9eR1xsfvHg
 ```
 
-## Usage
-
-### In Claude Code
-
 ```
-Please convert this video to notes: https://www.youtube.com/watch?v=...
+Summarize this tutorial in English: https://www.youtube.com/watch?v=...
 ```
 
 ```
-请将这个视频转换为中文笔记：https://www.bilibili.com/video/BV...
+Please save the notes to my Desktop/notes folder
 ```
 
-### Command Line
-
-```bash
-# Basic
-python scripts/process_video.py --url "VIDEO_URL"
-
-# With options
-python scripts/process_video.py \
-  --url "VIDEO_URL" \
-  --language zh \
-  --save-to-file \
-  --output-path "./notes"
+**中文:**
+```
+请将这个视频转换为笔记：https://www.bilibili.com/video/BV1xx411c7XZ
 ```
 
-**Parameters:**
-- `--url` - Video URL (required)
-- `--language` - Language code: `zh`, `en`, `auto`
-- `--ai-model` - AI model (default: `google/gemini-2.5-flash`)
-- `--save-to-file` - Save to markdown file
-- `--output-path` - Output directory
+```
+帮我总结这个教程，用中文
+```
 
-## Output Example
+```
+把笔记保存到我的文档文件夹
+```
 
-See [examples/github-spec-kit-notes.md](examples/github-spec-kit-notes.md) for a real output.
+**Claude will:**
+1. ✅ Check your environment automatically
+2. ✅ Download and process the video
+3. ✅ Generate beautiful markdown notes
+4. ✅ Save to file if you ask
 
-**Format features:**
-- Structured sections with core points summary
-- Code formatting with syntax highlighting
-- Smart examples for complex concepts
+---
 
-## Configuration
+## 📊 What You Get
 
-**`.env` file:**
+See real example: [examples/github-spec-kit-notes.md](examples/github-spec-kit-notes.md)
+
+**Every note includes:**
+
+```markdown
+# Clear Title Based on Content
+
+**Source**: [video URL]
+**Duration**: HH:MM:SS
+**Author**: Channel Name
+**Processed**: timestamp
+
+> **Core Points**
+> 1. Key takeaway one
+> 2. Key takeaway two
+> 3. Key takeaway three
+
+## 1. First Section
+
+Clear explanations with `inline code` formatting...
+
+```python
+# Code blocks with syntax highlighting
+def example():
+    return "properly formatted"
+```
+
+Smart examples when concepts are complex...
+
+## 2. Next Section
+...
+```
+
+---
+
+## 🎯 Capabilities
+
+| Feature | Details |
+|---------|---------|
+| **Platforms** | YouTube, Bilibili, Xiaohongshu |
+| **Languages** | Auto-detect, or specify: Chinese, English, Japanese, etc. |
+| **Video Length** | Up to 2 hours (configurable) |
+| **Speed** | ~2-3 minutes for an 8-minute video |
+| **Cost** | ~$0.02-0.05 per video (AI summary only) |
+| **Privacy** | Audio processed locally with Whisper |
+
+**AI Models Available:**
+- `google/gemini-2.5-flash` (default - fast & cheap)
+- `anthropic/claude-3.5-sonnet` (best quality)
+- `openai/gpt-4-turbo` (balanced)
+
+---
+
+## ⚙️ Advanced Configuration
+
+### Environment Variables (Optional)
+
+Edit `.env` to customize:
 
 ```env
-OPENROUTER_API_KEY=sk-or-your-key-here  # Required
-AI_MODEL=google/gemini-2.5-flash        # Optional
-WHISPER_MODEL=base                       # Optional: tiny/base/small/medium/large
-DEFAULT_LANGUAGE=zh                      # Optional: zh/en/auto
+# Required
+OPENROUTER_API_KEY=sk-or-your-key-here
+
+# Optional - customize these if needed
+AI_MODEL=google/gemini-2.5-flash    # Which AI to use
+WHISPER_MODEL=base                   # Whisper model: tiny/base/small/medium/large
+DEFAULT_LANGUAGE=zh                  # Default language: zh/en/auto
+OUTPUT_DIRECTORY=.                   # Where to save notes
 ```
 
-## Architecture
+### Whisper Models
+
+| Model | Speed | Accuracy | RAM | Best For |
+|-------|-------|----------|-----|----------|
+| `tiny` | ⚡⚡⚡ | ⭐⭐ | 1GB | Quick drafts |
+| `base` | ⚡⚡ | ⭐⭐⭐ | 1GB | **Default** - balanced |
+| `small` | ⚡ | ⭐⭐⭐⭐ | 2GB | Better accuracy |
+| `medium` | 🐌 | ⭐⭐⭐⭐⭐ | 5GB | High quality |
+
+---
+
+## 🛠️ For Developers
+
+### Architecture
 
 ```
 Video URL → yt-dlp → FFmpeg → Whisper (local) → OpenRouter API → Markdown
 ```
 
-## License
+### Command Line Usage
+
+If you prefer running scripts directly:
+
+```bash
+python scripts/process_video.py \
+  --url "https://www.youtube.com/watch?v=..." \
+  --language zh \
+  --save-to-file \
+  --output-path "./notes"
+```
+
+---
+
+## 📝 License
 
 MIT License - See [LICENSE](LICENSE)
+
+---
+
+<div align="center">
+
+**Built with** [yt-dlp](https://github.com/yt-dlp/yt-dlp) · [FFmpeg](https://ffmpeg.org/) · [OpenAI Whisper](https://github.com/openai/whisper) · [OpenRouter](https://openrouter.ai/)
+
+⭐ Star this repo if it helps you!
+
+</div>
